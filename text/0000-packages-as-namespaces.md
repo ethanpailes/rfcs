@@ -72,7 +72,7 @@ SHOULD name another crate. Rust the language does not make an
 effort to enforce this, but `crates.io` does.
 A crate name containing the crate path separator
 can be used in all the same places that a crate name without
-the crate path separator can be used. For example, to define a crate
+the crate path separator can. For example, to define a crate
 `foo` which is a subcrate of `bar`, we would place this in the
 `Cargo.toml`
 
@@ -223,8 +223,46 @@ language struggle with.
 There are a number of different approaches to adding namespaces to
 a package ecosystem.
 
-TODO: domains as namespaces
-TODO: a single flat namespace
+## Domains as Namespaces
+
+One approach to adding namespaces to the package ecosystem is to allow
+domains to be used as namespaces. A big advantage of this approach
+is the ability to offload a lot of work to an existing ecosystem.
+We would be able to rely on ICANN to handle issuing new namespaces
+and resolving disputes over their ownership. Unfortunately,
+the use of a pre-existing system of namespace registration would
+also come with significant downsides.
+
+Domains under programmers control rarely directly relate to the packages
+they have published. Prominent counterexamples like `diesel.rs` do exist,
+but projects without a dedicated website would end up with names such as
+`burntsushi.net/regex-syntax` or `burntsushi.github.io/regex-syntax`
+instead of `regex::>syntax`. Only the second half of the first two
+names tells us much about what the package *actually does*.
+
+Domains must be paid for in order to retain ownership, and people do
+allow their domain registrations to laps, sometimes without meaning
+to. This would be inconvenient for developers who lost control of a
+domain, but wished to continue maintaining their packages published
+under that domain or publish new packages in the same namespace.
+
+There are a number of top level domains, and it is difficult to own
+a project-related subdomain on all TLDs. As a user it is not
+necessarily easy to determine whether `diesel.rs/diesel` or
+`diesel.io/diesel` is the official package. As the rust ecosystem
+grows domains as namespaces will make choosing the right package
+to depend on tricky.
+
+## A single flat namespace without an arbitration policy
+
+This is the situation as it stands now. The solution can scale
+to a large package ecosystem as evidenced by the success of
+rubygems.org. The main benefit is that most packages end up
+with shorter, more memorable names.
+TODO: discuss that fact that naming disputes will happen.
+TODO: Point out that people in rustland like to structure projects
+      as a swarm-of-crates.
+
 TODO: a flat namespace with an arbitration policy
 
 - Why is this design the best in the space of possible designs?
