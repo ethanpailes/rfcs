@@ -49,14 +49,6 @@ with pulling in crates that are part of a larger ecosystem. Note that this
 motivation is the weakest of the motivations presented here because it
 is already possible to determine crate authorship.
 
-# A note on terminology
-
-TODO(ethan): remove this and useages of these keywords
-
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
-"SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
-interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119). 
-
 # Guide-level explanation
 [guide-level-explanation]: #guide-level-explanation
 
@@ -68,7 +60,7 @@ Any crate may define itself to be a subcrate of 0 or more crates by
 giving itself a name of the form
 `parent1::>parent2::>...::>parentn::>crate_name`.
 Each prefix of the name which begins and ends with an identifier
-SHOULD name another crate. Rust the language does not make an
+should name another crate. Rust the language does not make an
 effort to enforce this, but `crates.io` does.
 A crate name containing the crate path separator
 can be used in all the same places that a crate name without
@@ -136,6 +128,8 @@ be able to continue on as before.
 # Teaching packages-as-namespaces to new rust developers
 
 Other language ecosystems have namespaces for their package systems.
+Namespaced crates will probably not be the most common case, so they
+should show up 
 TODO
 
 - Introducing new named concepts.
@@ -165,7 +159,8 @@ error messages to change. This will not be a breaking change because
 
 ## Grammar
 
-The `path_expr` production will gain a new alternative so that it looks like
+The `path_expr` production will gain a new alternative (shown at the end)
+so that it looks like
 
 ```
 path_expr
@@ -184,11 +179,10 @@ crate_path
 | crate_path CRATE_SEP ident
 ```
 
-TODO: verify that this actually compiles at least
-
 ## Name Mangling
 
-TODO
+`:` and `>` are both valid symbols in a rust symbol before it is mangled today,
+so mangling would proceed in a similar fashion.
 
 ## Crates.io Ownership
 
@@ -201,14 +195,6 @@ and Bob. Alice could choose to remove herself from the owners list
 of `foo::>bar` to signal that Bob is the subcrate's primary maintainer
 (though nothing would stop her from adding herself back to
 the owners list at a later date).
-
-This is the technical portion of the RFC. Explain the design in sufficient detail that:
-
-- Its interaction with other features is clear.
-- It is reasonably clear how the feature would be implemented.
-- Corner cases are dissected by example.
-
-The section should return to the examples given in the previous section, and explain more fully how the detailed proposal makes those examples work.
 
 # Drawbacks
 [drawbacks]: #drawbacks
@@ -258,33 +244,41 @@ to depend on tricky.
 This is the situation as it stands now. The solution can scale
 to a large package ecosystem as evidenced by the success of
 rubygems.org. The main benefit is that most packages end up
-with shorter, more memorable names.
-TODO: discuss that fact that naming disputes will happen.
-TODO: Point out that people in rustland like to structure projects
-      as a swarm-of-crates.
+with shorter, more memorable names. This is especially beneficial
+when a community is new and still trying to build up steam.
+As the package ecosystem grows, names in the single flat
+namespace become a precious commodity. Disputes over who ought
+to control a name will arise, and without an arbitration policy
+the name will stay with whoever got there first.
 
-TODO: a flat namespace with an arbitration policy
+Larger rust projects like `actix`, `diesel`, `piston` and
+`amethyst` often end up publishing a host of supporting
+crates. In a single flat namespace, these projects are forced
+to take up a larger footprint, even if they would prefer to
+occupy a single name.
 
-- Why is this design the best in the space of possible designs?
-- What other designs have been considered and what is the rationale for not choosing them?
-- What is the impact of not doing this?
+## A single flat namespace with an arbitration policy
+
+This is the approach taken by npm and pypi. The biggest drawback
+of this approach is the amount of effort that is required in order
+to administer the arbitration policy.
+
+## The impact of not doing this
+
+TODO
+
 
 # Prior art
 [prior-art]: #prior-art
 
-Discuss prior art, both the good and the bad, in relation to this proposal.
-A few examples of what this can include are:
-
-- For language, library, cargo, tools, and compiler proposals: Does this feature exist in other programming languages and what experience have their community had?
-- For community proposals: Is this done by some other community and what were their experiences with it?
-- For other teams: What lessons can we learn from what other communities have done here?
-- Papers: Are there any published papers or great posts that discuss this? If you have some relevant papers to refer to, this can serve as a more detailed theoretical background.
-
-This section is intended to encourage you as an author to think about the lessons from other languages, provide readers of your RFC with a fuller picture.
-If there is no prior art, that is fine - your ideas are interesting to us whether they are brand new or if it is an adaptation from other languages.
-
-Note that while precedent set by other languages is some motivation, it does not on its own motivate an RFC.
-Please also take into consideration that rust sometimes intentionally diverges from common language features.
+rubygems.org uses a single flat namespace, pypi uses a flat
+namespace with an arbitration policy, the jvm ecosystem has support
+for namespaces and a convention of using domains as namespaces, and
+npm has a top level flat namespace plus scopes which allow some packages
+to be namespaced. npm's scope system is the closest to the system proposed
+in this document. The pros and cons of the different systems are discussed
+in more detail in the [rationale and alternatives][rationale-and-alternatives]
+section.
 
 # Unresolved questions
 [unresolved-questions]: #unresolved-questions
@@ -292,6 +286,19 @@ Please also take into consideration that rust sometimes intentionally diverges f
 An arbitration policy for package name disputes is out of scope for
 this RFC.
 
-- What parts of the design do you expect to resolve through the RFC process before this gets merged?
-- What parts of the design do you expect to resolve through the implementation of this feature before stabilization?
-- What related issues do you consider out of scope for this RFC that could be addressed in the future independently of the solution that comes out of this RFC?
+The decision to introduce a crate path separator into the rust naming
+scheme is not the only possible path for this proposal. One alternative
+design is to keep rust-the-language exactly the same as it is today.
+A crate such as `foo::>bar` would be referred to with the name `bar`
+in any rust source code. This has the nice benefit that it is easy to
+swap out implementations of `bar` with only configuration changes.
+The main drawbacks are reduced explicitness in the code, and the fact
+that it is not possible to use both `router` and `actix::>router` in
+the same projects without aliasing one of them. Additionally, including
+the namespace in rust identifiers opens the door to relaxing the restriction
+on where traits can be implemented. Even with these drawbacks, the ability
+to swap out implementations and the fact that such an approach would be much
+less invasive may be more desirable.
+
+I would like help making the section on name mangling more precise before this
+gets merged.
